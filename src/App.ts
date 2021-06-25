@@ -7,9 +7,9 @@ const PBA_REDCLIFFE_ID = "61411527010@c.us";
 const MIKE_TAN_ID = "61423965711@c.us";
 
 const THURSDAY_MESSAGE_REGEX =
-  /baddy social @ pba redcliffe.*thursday.*6pm-8pm.*(?<!list[ \n]*)1\.[ \n]*[^a-z0-9 ].*/is;
+  /baddy social @ pba redcliffe.*thursday.*6pm-8pm.*(?<!list[: \n\t]*)1\.[ \n\t]*[^a-z0-9 ].*/is;
 const TUESDAY_MESSAGE_REGEX =
-  /baddy social @ pba redcliffe.*tuesday.*6pm-8pm.*(?<!list[ \n]*)1\.[ \n]*[^a-z0-9 ].*/is;
+  /baddy social @ pba redcliffe.*tuesday.*6pm-8pm.*(?<!list[: \n\t]*)1\.[ \n\t]*[^a-z0-9 ].*/is;
 
 venom
   .create("Liam Wilburn")
@@ -28,9 +28,12 @@ const start = (client: Whatsapp) => {
 };
 
 const isInitialMessage = (message: Message) =>
+  message.chatId &&
   (message.chatId as any)["_serialized"] === WEEKDAY_SOCIAL_CHAT_ID &&
+  message.sender &&
   ((message.sender.id as any)["_serialized"] === PBA_REDCLIFFE_ID ||
     (message.sender.id as any)["_serialized"] === MIKE_TAN_ID) &&
+  message.body &&
   (THURSDAY_MESSAGE_REGEX.test(message.body) ||
     TUESDAY_MESSAGE_REGEX.test(message.body));
 
