@@ -17,10 +17,18 @@ venom
 
 const start = (client: Whatsapp) => {
   client.onMessage((message: Message) => {
+    console.info(message.body);
+
     if (isInitialMessage(message)) {
       const newMessage = addNameToInitialMessage(message);
-      client.sendText(WEEKDAY_SOCIAL_CHAT_ID, newMessage);
-      console.info("Sent Message:\n\n" + newMessage);
+      client
+        .sendText(WEEKDAY_SOCIAL_CHAT_ID, newMessage)
+        .then((result) => {
+          console.log("Result: ", result);
+        })
+        .catch((error) => {
+          console.error("Error when sending: ", error);
+        });
     }
   });
 
@@ -29,7 +37,7 @@ const start = (client: Whatsapp) => {
   //   .then((messages) =>
   //     console.info(
   //       messages
-  //         .filter(({ body }) => isValidInitialMessage(body))
+  //         .filter((message) => isInitialMessage(message))
   //         .map((message) => addNameToInitialMessage(message))
   //     )
   //   );
