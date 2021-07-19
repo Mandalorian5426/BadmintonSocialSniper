@@ -16,7 +16,9 @@ venom
   });
 
 const start = (client: Whatsapp) => {
-  client.onMessage((message: Message) => {
+  client.onAnyMessage((message: Message) => {
+    console.log("Message received: ", message.body);
+
     if (isInitialMessage(message)) {
       const newMessage = addNameToInitialMessage(message);
       client
@@ -27,8 +29,27 @@ const start = (client: Whatsapp) => {
         .catch((error) => {
           console.info("Error when sending: ", error);
         });
-    } else {
-      console.log(message.body);
+    }
+  });
+
+  client.onStateChange((state) => {
+    console.log("State changed: ", state);
+    if ("CONFLICT".includes(state)) {
+      client.useHere();
+    }
+    if ("UNPAIRED".includes(state)) {
+      console.log("logout");
+    }
+  });
+
+  let time: NodeJS.Timeout;
+  client.onStreamChange((state) => {
+    console.log("State Connection Stream: " + state);
+    clearTimeout(time);
+    if (state === "DISCONNECTED" || state === "SYNCING") {
+      time = setTimeout(() => {
+        client.close();
+      }, 80000);
     }
   });
 
