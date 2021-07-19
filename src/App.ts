@@ -9,16 +9,14 @@ const PBA_REDCLIFFE_ID = "61411527010@c.us";
 const MIKE_TAN_ID = "61423965711@c.us";
 
 venom
-  .create("Liam Wilburn")
+  .create("LiamWilburn")
   .then((client) => start(client))
   .catch((error) => {
-    console.log(error);
+    console.info(error);
   });
 
 const start = (client: Whatsapp) => {
   client.onMessage((message: Message) => {
-    console.info(message.body);
-
     if (isInitialMessage(message)) {
       const newMessage = addNameToInitialMessage(message);
       client
@@ -27,8 +25,10 @@ const start = (client: Whatsapp) => {
           console.log("Result: ", result);
         })
         .catch((error) => {
-          console.error("Error when sending: ", error);
+          console.info("Error when sending: ", error);
         });
+    } else {
+      console.log(message.body);
     }
   });
 
