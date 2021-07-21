@@ -16,7 +16,7 @@ venom
 
 const start = (client: Whatsapp) => {
   client.onAnyMessage((message: Message) => {
-    console.info("Message received: ", message.body);
+    console.info("Message received: ", message);
     if (isInitialMessage(message)) {
       const newMessage = addNameToInitialMessage(message);
       client.sendText(message.chatId, newMessage).catch((error) => {
@@ -46,7 +46,7 @@ const start = (client: Whatsapp) => {
 };
 
 const isInitialMessage = (message: Message) =>
-  isSentByValidSender(message.from) &&
+  isSentByValidSender(message.sender.id) &&
   isFromValidChat(message.chatId) &&
   isValidInitialMessage(message.body);
 
