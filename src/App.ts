@@ -1,7 +1,6 @@
 import * as R from "ramda";
 import * as venom from "venom-bot";
 import { Message, Whatsapp } from "venom-bot";
-import { Sender } from "venom-bot/dist/api/model/message";
 
 const WEEKDAY_SOCIAL_CHAT_ID = "61411527010-1612698201@g.us";
 
@@ -12,39 +11,31 @@ venom
   .create("LiamWilburn")
   .then((client) => start(client))
   .catch((error) => {
-    console.info(error);
+    console.error("Error creating client: ", error);
   });
 
 const start = (client: Whatsapp) => {
   client.onAnyMessage((message: Message) => {
-    console.log("Message received: ", message.body);
-
+    console.info("Message received: ", message.body);
     if (isInitialMessage(message)) {
       const newMessage = addNameToInitialMessage(message);
-      client
-        .sendText(WEEKDAY_SOCIAL_CHAT_ID, newMessage)
-        .then((result) => {
-          console.log("Result: ", result);
-        })
-        .catch((error) => {
-          console.info("Error when sending: ", error);
-        });
+      client.sendText(message.chatId, newMessage).catch((error) => {
+        console.error("Error sending message: ", error);
+      });
     }
   });
 
   client.onStateChange((state) => {
-    console.log("State changed: ", state);
     if ("CONFLICT".includes(state)) {
       client.useHere();
     }
     if ("UNPAIRED".includes(state)) {
-      console.log("logout");
+      console.info("Logout");
     }
   });
 
   let time: NodeJS.Timeout;
   client.onStreamChange((state) => {
-    console.log("State Connection Stream: " + state);
     clearTimeout(time);
     if (state === "DISCONNECTED" || state === "SYNCING") {
       time = setTimeout(() => {
@@ -52,20 +43,10 @@ const start = (client: Whatsapp) => {
       }, 80000);
     }
   });
-
-  // client
-  //   .loadAndGetAllMessagesInChat(WEEKDAY_SOCIAL_CHAT_ID, false, false)
-  //   .then((messages) =>
-  //     console.info(
-  //       messages
-  //         .filter((message) => isInitialMessage(message))
-  //         .map((message) => addNameToInitialMessage(message))
-  //     )
-  //   );
 };
 
 const isInitialMessage = (message: Message) =>
-  isSentByValidSender(message.sender) &&
+  isSentByValidSender(message.from) &&
   isFromValidChat(message.chatId) &&
   isValidInitialMessage(message.body);
 
@@ -95,13 +76,10 @@ const isValidInitialMessage = (body: string) => {
   return hasRequiredText && hasEmptyNumberOneSpot;
 };
 
-const isSentByValidSender = (sender: Sender) =>
-  sender &&
-  ((sender.id as any)["_serialized"] === PBA_REDCLIFFE_ID ||
-    (sender.id as any)["_serialized"] === MIKE_TAN_ID);
+const isSentByValidSender = (sender: string) =>
+  sender === PBA_REDCLIFFE_ID || sender === MIKE_TAN_ID;
 
-const isFromValidChat = (chatId: string) =>
-  chatId && (chatId as any)["_serialized"] === WEEKDAY_SOCIAL_CHAT_ID;
+const isFromValidChat = (chatId: string) => chatId === WEEKDAY_SOCIAL_CHAT_ID;
 
 const addNameToInitialMessage = (message: Message) => {
   let nameEntered = false;
