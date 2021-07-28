@@ -1,9 +1,7 @@
-import * as R from "ramda";
 import * as venom from "venom-bot";
 import { Message, Whatsapp } from "venom-bot";
 
 const WEEKDAY_SOCIAL_CHAT_ID = "61411527010-1612698201@g.us";
-
 const PBA_REDCLIFFE_ID = "61411527010@c.us";
 const MIKE_TAN_ID = "61423965711@c.us";
 
@@ -11,17 +9,37 @@ venom
   .create("LiamWilburn")
   .then((client) => start(client))
   .catch((error) => {
-    console.error("Error creating client: ", error);
+    console.error("Error in client: ", error);
   });
 
 const start = (client: Whatsapp) => {
+  let lastSentMessageTimestamp = 0;
   client.onAnyMessage((message: Message) => {
-    console.info("Message received: ", message);
-    if (isInitialMessage(message)) {
+    console.info("========== Message received ==========");
+    console.info("Body: ", message.body);
+    console.info("");
+    console.info("Is valid sender: ", isSentByValidSender(message.sender.id));
+    console.info("Is group chat: ", isFromValidChat(message.chat.id));
+    console.info("Is initial message: ", isValidInitialMessage(message.body));
+    console.info(
+      "Has been 12hrs: ",
+      lastSentMessageTimestamp + 1000 * 60 * 60 * 12 < Date.now()
+    );
+    console.info("======================================");
+
+    if (
+      isInitialMessage(message) &&
+      lastSentMessageTimestamp + 1000 * 60 * 60 * 12 < Date.now()
+    ) {
       const newMessage = addNameToInitialMessage(message);
-      client.sendText(message.chatId, newMessage).catch((error) => {
-        console.error("Error sending message: ", error);
-      });
+      client
+        .sendText(message.chat.id, newMessage)
+        .then(() => {
+          lastSentMessageTimestamp = Date.now();
+        })
+        .catch((error) => {
+          console.error("Error sending message: ", error);
+        });
     }
   });
 
@@ -58,22 +76,9 @@ const isValidInitialMessage = (body: string) => {
   const requiredTextRegex = (text: string) =>
     /baddy social @ pba redcliffe.*thursday.*6pm-8pm/is.test(text) ||
     /baddy social @ pba redcliffe.*tuesday.*6pm-8pm/is.test(text);
-
   const hasRequiredText = requiredTextRegex(body);
 
-  const emptyNumberOneSpot = (text: string) => /^1\.[ \n\t]*$/.test(text);
-  const endOfMainListRegex = (text: string) =>
-    /max[ ]*[0-9][0-9]/i.test(text) || /(?<!black[ ]*)list/i.test(text);
-
-  const strings = body.split("\n");
-
-  const indexOfEmptyNumberOneSpot = R.findIndex(emptyNumberOneSpot, strings);
-
-  const hasEmptyNumberOneSpot =
-    indexOfEmptyNumberOneSpot !== -1 &&
-    indexOfEmptyNumberOneSpot < R.findIndex(endOfMainListRegex, strings);
-
-  return hasRequiredText && hasEmptyNumberOneSpot;
+  return hasRequiredText && body.split("\n").length <= 20;
 };
 
 const isSentByValidSender = (sender: string) =>
