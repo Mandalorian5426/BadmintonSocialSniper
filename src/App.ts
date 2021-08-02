@@ -18,6 +18,7 @@ const start = (client: Whatsapp) => {
     console.info("========== Message received ==========");
     console.info("Body: ", message.body);
     console.info("");
+    console.info("Timestamp: ", message.timestamp);
     console.info("Is valid sender: ", isSentByValidSender(message.sender.id));
     console.info("Is group chat: ", isFromValidChat(message.chat.id));
     console.info("Is initial message: ", isValidInitialMessage(message.body));
